@@ -3,6 +3,7 @@
 Ez a szoftver egy érettségi szóbeli vizsgabizottság és a vizsgázók optimális napi beosztásának elkészítésére szolgál. A program minimalizálja a vizsgabizottság üresjáratait és biztosítja a vizsgázók számára az igazságos és minimális teremben töltött várakozási időt.
 
 A projekt egyszerre kínál **Python CLI (parancssoros)** változatot és egy könnyen kezelhető, interaktív **böngészős webes felületet**.
+<img width="1888" height="713" alt="kép" src="https://github.com/user-attachments/assets/7f7e7065-3657-4179-985e-d0df1b6e1ee8" />
 
 ---
 
