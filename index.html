@@ -1,0 +1,2051 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<!--
+   ______                            __
+  / ____/___  ____ ___  ____  __  __/ /____  _____
+ / /   / __ \/ __ `__ \/ __ \/ / / / __/ _ \/ ___/
+/ /___/ /_/ / / / / / / /_/ / /_/ / /_/  __/ /
+\____/\____/_/ /_/ /_/ .___/\__,_/\__/\___/_/
+                    /_/
+        Created with Perplexity Computer
+        https://www.perplexity.ai/computer
+-->
+
+<!-- Perplexity Computer Attribution — SEO Meta Tags -->
+<meta name="generator" content="Perplexity Computer">
+<meta name="author" content="Perplexity Computer">
+<meta property="og:see_also" content="https://www.perplexity.ai/computer">
+<link rel="author" href="https://www.perplexity.ai/computer">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Érettségi Vizsga Beosztás</title>
+<meta name="description" content="Érettségi szóbeli vizsgák optimális beosztásának elkészítése. Bizottsági üresjárat minimalizálása, igazságos várakozási idők.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+
+<style>
+  :root {
+    --teal: #01696F;
+    --teal-dark: #015458;
+    --teal-light: #E6F4F4;
+    --teal-mid: #c0e0e1;
+    --bg: #f7f6f2;
+    --card: #ffffff;
+    --border: #e2dfd8;
+    --text: #1a1a1a;
+    --text-muted: #6b6860;
+    --text-light: #9a9790;
+    --lang-bg: #FFF3E0;
+    --lang-border: #FFCC80;
+    --danger: #c0392b;
+    --success: #437A22;
+    --warning: #e67e22;
+    --radius: 8px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.05);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* ====== HEADER ====== */
+  header {
+    background: var(--teal);
+    color: white;
+    padding: 0 24px;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  }
+  header svg { flex-shrink: 0; }
+  .header-title { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+  .header-subtitle { font-size: 12px; opacity: 0.75; margin-top: 1px; }
+
+  /* ====== LAYOUT ====== */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 20px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  /* ====== CARDS ====== */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+  .card-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .card-header h2 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--teal);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .card-body { padding: 20px; }
+
+  /* ====== TIME ROW ====== */
+  .time-row {
+    display: flex;
+    gap: 16px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .form-group label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+  .form-group input[type="time"] {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 7px 10px;
+    font-size: 14px;
+    font-family: inherit;
+    color: var(--text);
+    background: white;
+    width: 120px;
+    transition: border-color 0.15s;
+  }
+  .form-group input[type="time"]:focus {
+    outline: none;
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(1,105,111,0.1);
+  }
+
+  /* ====== STUDENT TABLE ====== */
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 14px;
+  }
+  table.input-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    min-width: 700px;
+  }
+  table.input-table thead tr {
+    background: var(--teal);
+    color: white;
+  }
+  table.input-table thead th {
+    padding: 9px 10px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  table.input-table thead th:first-child { width: 36px; text-align: center; }
+  table.input-table tbody tr:nth-child(even) { background: #faf9f7; }
+  table.input-table tbody tr:hover { background: var(--teal-light); }
+  table.input-table tbody td { padding: 4px 6px; vertical-align: middle; }
+  table.input-table tbody td:first-child { text-align: center; color: var(--text-muted); font-size: 12px; }
+
+  table.input-table input[type="text"] {
+    width: 100%;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    padding: 5px 8px;
+    font-size: 13px;
+    font-family: inherit;
+    background: transparent;
+    color: var(--text);
+    transition: border-color 0.15s, background 0.15s;
+  }
+  table.input-table input[type="text"]:focus {
+    outline: none;
+    border-color: var(--teal);
+    background: white;
+    box-shadow: 0 0 0 2px rgba(1,105,111,0.1);
+  }
+  table.input-table input[type="text"].lang-input {
+    background: var(--lang-bg);
+    border-color: var(--lang-border);
+  }
+  table.input-table input[type="text"].lang-input:focus {
+    background: #fff8f0;
+  }
+
+  /* ====== BUTTONS ====== */
+  .btn-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  button {
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 14px;
+    transition: all 0.15s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .btn-primary {
+    background: var(--teal);
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 11px 28px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(1,105,111,0.3);
+  }
+  .btn-primary:hover { background: var(--teal-dark); box-shadow: 0 4px 8px rgba(1,105,111,0.35); transform: translateY(-1px); }
+  .btn-primary:active { transform: translateY(0); }
+  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+  .btn-secondary {
+    background: white;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { background: var(--bg); border-color: #c8c4bc; }
+
+  .btn-outline-teal {
+    background: white;
+    color: var(--teal);
+    border: 1px solid var(--teal-mid);
+  }
+  .btn-outline-teal:hover { background: var(--teal-light); }
+
+  .btn-danger {
+    background: white;
+    color: var(--danger);
+    border: 1px solid #f5c6c2;
+  }
+  .btn-danger:hover { background: #fef2f1; border-color: var(--danger); }
+
+  .btn-excel {
+    background: #217346;
+    color: white;
+  }
+  .btn-excel:hover { background: #1a5c38; }
+
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+  /* ====== HINT TEXT ====== */
+  .hint {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 8px;
+    line-height: 1.6;
+  }
+  .hint strong { color: var(--teal); }
+
+  /* ====== TABS ====== */
+  .tabs-bar {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    padding: 0 20px;
+    background: var(--bg);
+    border-radius: var(--radius) var(--radius) 0 0;
+    gap: 2px;
+  }
+  .tab-btn {
+    padding: 11px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 0;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-bottom: -1px;
+  }
+  .tab-btn:hover { color: var(--teal); }
+  .tab-btn.active {
+    color: var(--teal);
+    border-bottom-color: var(--teal);
+    font-weight: 600;
+  }
+  .tab-panel { display: none; padding: 20px; }
+  .tab-panel.active { display: block; }
+
+  /* ====== RESULT TABLES ====== */
+  .result-table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 16px;
+  }
+  table.result-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    min-width: 500px;
+  }
+  table.result-table thead tr {
+    background: var(--teal);
+    color: white;
+  }
+  table.result-table thead th {
+    padding: 9px 12px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  table.result-table tbody td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  table.result-table tbody tr:last-child td { border-bottom: none; }
+  table.result-table tbody tr:hover { background: #fafaf8; }
+  table.result-table .lang-row td { background: var(--lang-bg); }
+  table.result-table .lang-row:hover td { background: #fff0d0; }
+  table.result-table .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .tag-lang { background: var(--lang-bg); color: #e65100; border: 1px solid var(--lang-border); }
+  .tag-normal { background: var(--teal-light); color: var(--teal-dark); border: 1px solid var(--teal-mid); }
+
+  /* ====== STAT GRID ====== */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+  }
+  .stat-card .stat-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 6px;
+  }
+  .stat-card .stat-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--teal);
+    line-height: 1;
+  }
+  .stat-card .stat-sub {
+    font-size: 11px;
+    color: var(--text-light);
+    margin-top: 4px;
+  }
+  .stat-card.good .stat-value { color: var(--success); }
+  .stat-card.warn .stat-value { color: var(--warning); }
+
+  /* ====== DAY DIVIDER ====== */
+  .day-header {
+    background: var(--teal-light);
+    border: 1px solid var(--teal-mid);
+    border-radius: 6px;
+    padding: 10px 16px;
+    margin: 16px 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .day-header h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--teal);
+  }
+  .day-header span {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* ====== STUDENT SCHEDULE ====== */
+  .student-block {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .student-block-header {
+    background: #f4f3ef;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .student-block-header strong {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .student-meta {
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    gap: 16px;
+  }
+  .student-meta span strong { color: var(--text); font-weight: 600; }
+
+  /* ====== SPINNER ====== */
+  .spinner-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(247,246,242,0.85);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .spinner-overlay.active { display: flex; }
+  .spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid var(--teal-mid);
+    border-top-color: var(--teal);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner-msg {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--teal);
+  }
+  .spinner-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* ====== EXPORT ROW ====== */
+  .export-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    border-top: 1px solid var(--border);
+    background: #faf9f7;
+    border-radius: 0 0 var(--radius) var(--radius);
+  }
+
+  /* ====== ALERT / EMPTY ====== */
+  .alert {
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .alert-info { background: var(--teal-light); border: 1px solid var(--teal-mid); color: var(--teal-dark); }
+  .alert-error { background: #fef2f1; border: 1px solid #f5c6c2; color: var(--danger); }
+  .alert-success { background: #f0f7ea; border: 1px solid #c3e6a0; color: #1a5c0a; }
+
+  .empty-state {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--text-muted);
+  }
+  .empty-state svg { opacity: 0.3; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; }
+
+  /* ====== FOOTER ====== */
+  footer {
+    text-align: center;
+    padding: 16px;
+    font-size: 11px;
+    color: var(--text-light);
+    border-top: 1px solid var(--border);
+    margin-top: 8px;
+  }
+  footer a { color: var(--text-muted); text-decoration: none; }
+  footer a:hover { color: var(--teal); text-decoration: underline; }
+
+  /* ====== WAIT BAR ====== */
+  .wait-bar {
+    display: inline-block;
+    height: 8px;
+    min-width: 4px;
+    border-radius: 4px;
+    background: var(--teal-mid);
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+  .wait-bar.high { background: #ef9a9a; }
+  .wait-bar.med { background: #ffcc80; }
+  .wait-bar.low { background: #a5d6a7; }
+
+  /* ====== IDLE indicator ====== */
+  .idle-warn {
+    font-size: 12px;
+    color: var(--warning);
+    font-weight: 500;
+    padding: 4px 8px;
+    background: #fff8f0;
+    border-radius: 4px;
+    display: inline-block;
+  }
+
+  /* ====== RESPONSIVE ====== */
+  @media (max-width: 768px) {
+    .container { padding: 12px; }
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    .btn-primary { width: 100%; justify-content: center; }
+    .time-row { flex-direction: column; align-items: stretch; }
+    .form-group input[type="time"] { width: 100%; }
+  }
+
+  /* ====== FILE INPUT HIDDEN ====== */
+  #fileInput { display: none; }
+
+  /* number column in day headers */
+  .num-badge {
+    background: var(--teal);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+  }
+
+  /* idle row */
+  .idle-row td {
+    background: #fff8f0;
+    color: var(--warning);
+    font-style: italic;
+    font-size: 12px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<!-- SPINNER OVERLAY -->
+<div class="spinner-overlay" id="spinnerOverlay">
+  <div class="spinner"></div>
+  <div class="spinner-msg" id="spinnerMsg">Beosztás számítása folyamatban…</div>
+  <div class="spinner-sub" id="spinnerSub">Ez eltarthat néhány másodpercig brute-force módban.</div>
+</div>
+
+<!-- HIDDEN FILE INPUT -->
+<input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+
+<header>
+  <!-- SVG Logo: stylized calendar/schedule icon -->
+  <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-label="Vizsga Beosztás logó">
+    <rect x="2" y="5" width="24" height="21" rx="3" fill="rgba(255,255,255,0.2)" stroke="white" stroke-width="1.5"/>
+    <path d="M8 5V2M20 5V2" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+    <path d="M2 10H26" stroke="white" stroke-width="1.5"/>
+    <rect x="6" y="14" width="4" height="4" rx="1" fill="white"/>
+    <rect x="12" y="14" width="4" height="4" rx="1" fill="rgba(255,255,255,0.5)"/>
+    <rect x="18" y="14" width="4" height="4" rx="1" fill="rgba(255,255,255,0.5)"/>
+    <rect x="6" y="20" width="4" height="3" rx="1" fill="rgba(255,255,255,0.5)"/>
+    <rect x="12" y="20" width="4" height="3" rx="1" fill="white"/>
+  </svg>
+  <div>
+    <div class="header-title">Érettségi Vizsga Beosztás</div>
+    <div class="header-subtitle">Optimális szóbeli vizsga ütemező</div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- ====== INPUT SECTION ====== -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Vizsgázók adatai</h2>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn-secondary btn-sm" onclick="addRow()">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2V12M2 7H12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Sor hozzáadása
+        </button>
+        <button class="btn-danger btn-sm" onclick="deleteLastRow()">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7H12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Sor törlése
+        </button>
+        <button class="btn-outline-teal btn-sm" onclick="loadTestData()">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L9 5H13L10 8L11 12L7 10L3 12L4 8L1 5H5L7 1Z" stroke="currentColor" stroke-width="1.2" fill="none"/></svg>
+          Tesztadatok betöltése
+        </button>
+        <button class="btn-excel btn-sm" onclick="document.getElementById('fileInput').click()">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M8 1H3a1 1 0 00-1 1v10a1 1 0 001 1h8a1 1 0 001-1V5L8 1z" stroke="white" stroke-width="1.2" fill="none"/><path d="M8 1v4h4" stroke="white" stroke-width="1.2"/><path d="M4.5 9L6 7.5 7.5 9 9 7" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg>
+          Excel importálás
+        </button>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="time-row">
+        <div class="form-group">
+          <label>Vizsga kezdete</label>
+          <input type="time" id="startTime" value="08:00">
+        </div>
+        <div class="form-group">
+          <label>Vizsga vége</label>
+          <input type="time" id="endTime" value="16:00">
+        </div>
+        <div class="form-group">
+          <label>Vizsga hossza (perc)</label>
+          <input type="number" id="examLength" value="15" min="1" max="60" style="width:80px; text-align:center; padding:10px 12px; border:1px solid var(--border); border-radius:var(--radius); font-size:15px;">
+        </div>
+        <div class="form-group">
+          <label>Szünet vizsgák között (perc)</label>
+          <input type="number" id="breakTime" value="2" min="0" max="10" style="width:80px; text-align:center; padding:10px 12px; border:1px solid var(--border); border-radius:var(--radius); font-size:15px;">
+        </div>
+        <div class="form-group">
+          <label>Felkészülési idő (perc)</label>
+          <input type="number" id="prepTime" value="20" min="0" max="120" style="width:80px; text-align:center; padding:10px 12px; border:1px solid var(--border); border-radius:var(--radius); font-size:15px;">
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="input-table" id="studentTable">
+          <thead>
+            <tr id="tableHeader">
+              <th>#</th>
+              <th style="min-width:140px">Név</th>
+              <th style="min-width:130px">1. Tárgy</th>
+              <th style="min-width:130px">2. Tárgy</th>
+              <th style="min-width:130px">3. Tárgy</th>
+              <th style="min-width:130px">4. Tárgy</th>
+              <th style="min-width:130px">5. Tárgy</th>
+              <th style="min-width:130px">6. Tárgy</th>
+            </tr>
+          </thead>
+          <tbody id="studentBody">
+          </tbody>
+        </table>
+      </div>
+
+      <div class="hint">
+        <strong>Nyelvi tárgyak jelölése:</strong> A tárgy neve elé írjon <strong>*</strong> csillagot (pl. <em>*Angol nyelv</em>). Nyelvi tárgyak: 0 perc felkészülési idő. A vizsga hossza, szünet és felkészülési idő fent állítható.<br><strong>Tipp:</strong> A záró időponttal érdemes kísletezni — már néhány perc különbség is csökkentheti a szükséges napok számát.
+<br><strong>Tipp:</strong>Excel betöltő <strong><a href="vizsga_bemenet_sablon.xlsx">minta</a></strong> (a tárgyak száma növelhető).
+      </div>
+
+      <div style="margin-top:20px; display:flex; justify-content:center;">
+        <button class="btn-primary" id="calcBtn" onclick="startCalculation()">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2" y="2" width="14" height="14" rx="2" stroke="white" stroke-width="1.5"/><path d="M6 9h6M9 6v6" stroke="white" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Beosztás készítése
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== RESULTS SECTION ====== -->
+  <div class="card" id="resultsSection" style="display:none;">
+    <div class="tabs-bar">
+      <button class="tab-btn active" onclick="switchTab(0)" id="tab0">📊 Statisztika</button>
+      <button class="tab-btn" onclick="switchTab(1)" id="tab1">📋 Bizottság beosztása</button>
+      <button class="tab-btn" onclick="switchTab(2)" id="tab2">🎓 Diákok beosztása</button>
+    </div>
+
+    <!-- TAB 0: Statisztika -->
+    <div class="tab-panel active" id="panel0">
+      <div id="statsContent"></div>
+    </div>
+
+    <!-- TAB 1: Bizottság -->
+    <div class="tab-panel" id="panel1">
+      <div id="committeeContent"></div>
+    </div>
+
+    <!-- TAB 2: Diákok -->
+    <div class="tab-panel" id="panel2">
+      <div id="studentContent"></div>
+    </div>
+
+    <div class="export-row">
+      <button class="btn-excel" onclick="exportExcel()">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M9 1H4a1 1 0 00-1 1v12a1 1 0 001 1h8a1 1 0 001-1V5L9 1z" stroke="white" stroke-width="1.2" fill="none"/><path d="M9 1v4h4" stroke="white" stroke-width="1.2"/><path d="M5.5 10L7 8.5 8.5 10 10 8" stroke="white" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Excel letöltés
+      </button>
+      <span style="font-size:12px; color:var(--text-muted);">Statisztika, Bizottság és Diákok lapokkal</span>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <a href="https://www.perplexity.ai/computer" target="_blank" rel="noopener noreferrer">Created with Perplexity Computer</a>
+  &nbsp;·&nbsp; Érettségi Vizsga Beosztás · 2026
+</footer>
+
+<script>
+"use strict";
+
+// ============================================================
+// CONSTANTS
+// ============================================================
+let VIZSGA_HOSSZ = 15;
+let SZUNET_HOSSZ = 2;
+let FELKESZULESI_IDO = 20;
+const MAX_TEREMBEN = 5;
+const BRUTE_FORCE_LIMIT = 10;
+
+// ============================================================
+// DATA STRUCTURES
+// ============================================================
+
+class Targy {
+  constructor(nev, nyelvi = false) {
+    this.nev = nev;
+    this.nyelvi = nyelvi;
+  }
+  get felkeszulesi_ido() { return this.nyelvi ? 0 : FELKESZULESI_IDO; }
+}
+
+class Vizsgazo {
+  constructor(nev, targyak) {
+    this.nev = nev;
+    this.targyak = targyak; // original list
+    this.reset();
+  }
+  reset() {
+    this.hatralevo_targyak = [...this.targyak];
+    this.bent_van = false;
+    this.minden_kesz = false;
+    this.belepesi_ido = null;
+    this.kilepesi_ido = null;
+    this.felkeszules_vege = null;
+    this.utolso_vizsga_vege = null;
+    this.ossz_varakozas = 0;
+  }
+  get keszult() {
+    return this.hatralevo_targyak.length === 0 && this.utolso_vizsga_vege !== null;
+  }
+  kileptetheto(t) {
+    return this.keszult && t >= this.utolso_vizsga_vege;
+  }
+}
+
+class VizsgaEsemeny {
+  constructor(vizsgazo_nev, targy_nev, targy_nyelvi, kezdes, befejezes, felkeszules_kezdet) {
+    this.vizsgazo_nev = vizsgazo_nev;
+    this.targy_nev = targy_nev;
+    this.targy_nyelvi = targy_nyelvi;
+    this.kezdes = kezdes;
+    this.befejezes = befejezes;
+    this.felkeszules_kezdet = felkeszules_kezdet;
+  }
+}
+
+// ============================================================
+// ALGORITHM
+// ============================================================
+
+function optimalis_targy_sorrend(targyak) {
+  const nyelvi = targyak.filter(t => t.nyelvi);
+  const nem_nyelvi = targyak.filter(t => !t.nyelvi);
+
+  const sorrend = [];
+  if (nyelvi.length > 0) {
+    sorrend.push(nyelvi.shift());
+  }
+
+  if (nyelvi.length === 0) {
+    sorrend.push(...nem_nyelvi);
+  } else {
+    let szamlalo = 0;
+    for (const t of nem_nyelvi) {
+      sorrend.push(t);
+      szamlalo++;
+      if (szamlalo >= 2 && nyelvi.length > 0) {
+        sorrend.push(nyelvi.shift());
+        szamlalo = 0;
+      }
+    }
+    sorrend.push(...nyelvi);
+  }
+
+  return sorrend;
+}
+
+function _szimulacio_core(rendezett_vizsgalok) {
+  // Reset all students
+  for (const v of rendezett_vizsgalok) {
+    v.hatralevo_targyak = [...v.targyak];
+    v.bent_van = false;
+    v.minden_kesz = false;
+    v.belepesi_ido = null;
+    v.kilepesi_ido = null;
+    v.felkeszules_vege = null;
+    v.utolso_vizsga_vege = null;
+    v.ossz_varakozas = 0;
+  }
+
+  const esemenyek = [];
+  const varakozok = [...rendezett_vizsgalok];
+  const bent_levok = [];
+  let bizottsag_szabad = 0;
+  let ido = 0;
+
+  function beleptet(t) {
+    while (bent_levok.length < MAX_TEREMBEN && varakozok.length > 0) {
+      const v = varakozok.shift();
+      v.bent_van = true;
+      v.belepesi_ido = t;
+      const elso = v.hatralevo_targyak[0];
+      v.felkeszules_vege = t + elso.felkeszulesi_ido;
+      bent_levok.push(v);
+    }
+  }
+
+  function kileptet(t) {
+    const kilep = bent_levok.filter(v => v.kileptetheto(t));
+    for (const v of kilep) {
+      v.bent_van = false;
+      v.minden_kesz = true;
+      v.kilepesi_ido = t;
+      const idx = bent_levok.indexOf(v);
+      if (idx >= 0) bent_levok.splice(idx, 1);
+    }
+  }
+
+  function valassz_vizsgaiot(keszek, t) {
+    const nem_nyelvi = keszek.filter(v => !v.hatralevo_targyak[0].nyelvi);
+    const nyelvi = keszek.filter(v => v.hatralevo_targyak[0].nyelvi);
+
+    if (nem_nyelvi.length > 0) {
+      nem_nyelvi.sort((a, b) => {
+        const waitA = t - a.felkeszules_vege;
+        const waitB = t - b.felkeszules_vege;
+        if (waitB !== waitA) return waitB - waitA; // longest wait first
+        return b.ossz_varakozas - a.ossz_varakozas;
+      });
+      return nem_nyelvi[0];
+    }
+
+    if (nyelvi.length > 0) {
+      nyelvi.sort((a, b) => b.ossz_varakozas - a.ossz_varakozas);
+      return nyelvi[0];
+    }
+
+    return null;
+  }
+
+  beleptet(0);
+
+  for (let iter = 0; iter < 10000; iter++) {
+    kileptet(ido);
+    beleptet(ido);
+
+    if (ido >= bizottsag_szabad) {
+      const keszek = bent_levok.filter(v =>
+        v.hatralevo_targyak.length > 0 &&
+        v.felkeszules_vege !== null &&
+        v.felkeszules_vege <= ido
+      );
+
+      if (keszek.length > 0) {
+        let vizsgazo = valassz_vizsgaiot(keszek, ido);
+        if (vizsgazo === null) vizsgazo = keszek[0];
+
+        const targy = vizsgazo.hatralevo_targyak.shift();
+        const vizsga_kezd = ido;
+        const vizsga_veg = ido + VIZSGA_HOSSZ;
+        const felk_kezdet = vizsgazo.felkeszules_vege - targy.felkeszulesi_ido;
+
+        if (!targy.nyelvi) {
+          const var_ = ido - vizsgazo.felkeszules_vege;
+          if (var_ > 0) vizsgazo.ossz_varakozas += var_;
+        }
+
+        esemenyek.push(new VizsgaEsemeny(
+          vizsgazo.nev,
+          targy.nev,
+          targy.nyelvi,
+          vizsga_kezd,
+          vizsga_veg,
+          felk_kezdet
+        ));
+
+        vizsgazo.utolso_vizsga_vege = vizsga_veg;
+        bizottsag_szabad = vizsga_veg + SZUNET_HOSSZ;
+
+        if (vizsgazo.hatralevo_targyak.length > 0) {
+          const kov = vizsgazo.hatralevo_targyak[0];
+          vizsgazo.felkeszules_vege = vizsga_veg + kov.felkeszulesi_ido;
+        } else {
+          vizsgazo.felkeszules_vege = null;
+        }
+
+        continue;
+      }
+    }
+
+    if (bent_levok.length === 0 && varakozok.length === 0) break;
+
+    const kovetkezo = [];
+    if (bizottsag_szabad > ido) kovetkezo.push(bizottsag_szabad);
+    for (const v of bent_levok) {
+      if (v.felkeszules_vege !== null && v.felkeszules_vege > ido) kovetkezo.push(v.felkeszules_vege);
+      if (v.utolso_vizsga_vege !== null && v.utolso_vizsga_vege > ido) kovetkezo.push(v.utolso_vizsga_vege);
+    }
+
+    if (kovetkezo.length > 0) {
+      const uj = Math.min(...kovetkezo);
+      ido = Math.max(uj, ido + 1);
+    } else {
+      ido++;
+    }
+  }
+
+  return [esemenyek, rendezett_vizsgalok];
+}
+
+function _ertekeles(esemenyek, vizsgalok) {
+  if (esemenyek.length === 0) return [99999, 99999, 99999];
+
+  const ossz_targy = vizsgalok.reduce((s, v) => s + v.targyak.length, 0);
+  if (esemenyek.length !== ossz_targy) return [99999, 99999, 99999];
+
+  const elso = Math.min(...esemenyek.map(e => e.kezdes));
+  const utolso = Math.max(...esemenyek.map(e => e.befejezes));
+  const teljes = utolso - elso;
+
+  let elfoglalt = 0;
+  for (let i = 0; i < esemenyek.length; i++) {
+    elfoglalt += VIZSGA_HOSSZ;
+    if (i < esemenyek.length - 1) {
+      const szunet = esemenyek[i + 1].kezdes - esemenyek[i].befejezes;
+      elfoglalt += Math.min(szunet, SZUNET_HOSSZ);
+    }
+  }
+  const uresjarat = teljes - elfoglalt;
+
+  let max_var = 0;
+  for (const v of vizsgalok) {
+    for (const e of esemenyek) {
+      if (e.vizsgazo_nev === v.nev && !e.targy_nyelvi) {
+        const var_ = e.kezdes - (e.felkeszules_kezdet + FELKESZULESI_IDO);
+        if (var_ > max_var) max_var = var_;
+      }
+    }
+  }
+
+  return [teljes, max_var, uresjarat];
+}
+
+// ============================================================
+// BRUTE FORCE (≤10 students)
+// ============================================================
+
+function _brute_force_szimulacio(vizsgalok) {
+  const n = vizsgalok.length;
+
+  let legjobb_ertek = [99999, 99999, 99999];
+  let legjobb_sorrend = null;
+
+  // Generate all permutations iteratively
+  const indices = Array.from({length: n}, (_, i) => i);
+
+  function permute(arr) {
+    // Heap's algorithm
+    const result = [];
+    const c = new Array(arr.length).fill(0);
+    result.push([...arr]);
+    let i = 0;
+    while (i < arr.length) {
+      if (c[i] < i) {
+        if (i % 2 === 0) {
+          [arr[0], arr[i]] = [arr[i], arr[0]];
+        } else {
+          [arr[c[i]], arr[i]] = [arr[i], arr[c[i]]];
+        }
+        result.push([...arr]);
+        c[i]++;
+        i = 0;
+      } else {
+        c[i] = 0;
+        i++;
+      }
+    }
+    return result;
+  }
+
+  const perms = permute(indices);
+
+  for (const perm of perms) {
+    const rendezett = perm.map(i => vizsgalok[i]);
+    const [esemenyek] = _szimulacio_core(rendezett);
+    const ertek = _ertekeles(esemenyek, vizsgalok);
+    if (ertek[0] < legjobb_ertek[0] ||
+        (ertek[0] === legjobb_ertek[0] && ertek[1] < legjobb_ertek[1]) ||
+        (ertek[0] === legjobb_ertek[0] && ertek[1] === legjobb_ertek[1] && ertek[2] < legjobb_ertek[2])) {
+      legjobb_ertek = ertek;
+      legjobb_sorrend = [...perm];
+    }
+  }
+
+  const rendezett = legjobb_sorrend.map(i => vizsgalok[i]);
+  return _szimulacio_core(rendezett);
+}
+
+// ============================================================
+// ROLLING BRUTE FORCE (>10 students)
+// ============================================================
+
+function _permutations_k(arr, k) {
+  // Returns all k-permutations of arr as arrays of indices
+  const result = [];
+  function helper(current, remaining) {
+    if (current.length === k) {
+      result.push([...current]);
+      return;
+    }
+    for (let i = 0; i < remaining.length; i++) {
+      current.push(remaining[i]);
+      const newRemaining = remaining.filter((_, j) => j !== i);
+      helper(current, newRemaining);
+      current.pop();
+    }
+  }
+  helper([], arr);
+  return result;
+}
+
+function _gordulo_szimulacio(vizsgalok) {
+  const n = vizsgalok.length;
+
+  // Sort candidates: language-first subjects first, then by exam count desc
+  const jeloltek = [...vizsgalok].sort((a, b) => {
+    const aLang = (a.hatralevo_targyak.length > 0 && a.hatralevo_targyak[0].nyelvi) ? 0 : 1;
+    const bLang = (b.hatralevo_targyak.length > 0 && b.hatralevo_targyak[0].nyelvi) ? 0 : 1;
+    if (aLang !== bLang) return aLang - bLang;
+    return b.targyak.length - a.targyak.length;
+  });
+
+  const max_jelolt = Math.min(jeloltek.length, 8);
+  const elso_jeloltek = jeloltek.slice(0, max_jelolt);
+  const tobbi = vizsgalok.filter(v => !elso_jeloltek.includes(v));
+
+  const elso_n = Math.min(MAX_TEREMBEN, elso_jeloltek.length);
+  const elso_indexek = Array.from({length: max_jelolt}, (_, i) => i);
+  const perms = _permutations_k(elso_indexek, elso_n);
+
+  let legjobb_ertek = [99999, 99999, 99999];
+  let legjobb_sorrend = null;
+  let legjobb_teljes = null;
+
+  for (const elso_perm of perms) {
+    const elso_ot = elso_perm.map(i => elso_jeloltek[i]);
+    const usedSet = new Set(elso_perm);
+    let maradek_jeloltek = elso_jeloltek.filter((_, i) => !usedSet.has(i));
+    let maradek = [...maradek_jeloltek, ...tobbi];
+    maradek.sort((a, b) => {
+      const aLang = (a.hatralevo_targyak.length > 0 && a.hatralevo_targyak[0].nyelvi) ? 0 : 1;
+      const bLang = (b.hatralevo_targyak.length > 0 && b.hatralevo_targyak[0].nyelvi) ? 0 : 1;
+      if (aLang !== bLang) return aLang - bLang;
+      return b.targyak.length - a.targyak.length;
+    });
+
+    const teljes_sorrend = [...elso_ot, ...maradek];
+    const [esemenyek] = _szimulacio_core(teljes_sorrend);
+    const ertek = _ertekeles(esemenyek, vizsgalok);
+
+    if (ertek[0] < legjobb_ertek[0] ||
+        (ertek[0] === legjobb_ertek[0] && ertek[1] < legjobb_ertek[1]) ||
+        (ertek[0] === legjobb_ertek[0] && ertek[1] === legjobb_ertek[1] && ertek[2] < legjobb_ertek[2])) {
+      legjobb_ertek = ertek;
+      legjobb_sorrend = teljes_sorrend.map(v => v.nev);
+      legjobb_teljes = [...teljes_sorrend];
+    }
+  }
+
+  // Greedy refinement of remaining positions
+  const elso_ot_nevek = legjobb_sorrend.slice(0, elso_n);
+  const maradek_vizsgalok = legjobb_teljes.filter(v => !elso_ot_nevek.includes(v.nev));
+  const elso_ot_obj = legjobb_teljes.filter(v => elso_ot_nevek.includes(v.nev));
+  elso_ot_obj.sort((a, b) => elso_ot_nevek.indexOf(a.nev) - elso_ot_nevek.indexOf(b.nev));
+
+  const vegleges_maradek = [];
+  let meg_nem_beleptetve = [...maradek_vizsgalok];
+
+  for (let pozicio = 0; pozicio < maradek_vizsgalok.length; pozicio++) {
+    let legjobb_jelolt = null;
+    let legjobb_jelolt_ertek = [99999, 99999, 99999];
+
+    for (const jelolt of meg_nem_beleptetve) {
+      const proba_maradek = [jelolt, ...meg_nem_beleptetve.filter(v => v !== jelolt)];
+      const proba_sorrend = [...elso_ot_obj, ...vegleges_maradek, ...proba_maradek];
+      const [esemenyek] = _szimulacio_core(proba_sorrend);
+      const ertek = _ertekeles(esemenyek, vizsgalok);
+
+      if (ertek[0] < legjobb_jelolt_ertek[0] ||
+          (ertek[0] === legjobb_jelolt_ertek[0] && ertek[1] < legjobb_jelolt_ertek[1]) ||
+          (ertek[0] === legjobb_jelolt_ertek[0] && ertek[1] === legjobb_jelolt_ertek[1] && ertek[2] < legjobb_jelolt_ertek[2])) {
+        legjobb_jelolt_ertek = ertek;
+        legjobb_jelolt = jelolt;
+      }
+    }
+
+    vegleges_maradek.push(legjobb_jelolt);
+    meg_nem_beleptetve = meg_nem_beleptetve.filter(v => v !== legjobb_jelolt);
+  }
+
+  const vegleges_sorrend = [...elso_ot_obj, ...vegleges_maradek];
+  return _szimulacio_core(vegleges_sorrend);
+}
+
+function szimulacio(vizsgalok) {
+  // Apply subject ordering first
+  for (const v of vizsgalok) {
+    v.targyak = optimalis_targy_sorrend(v.targyak);
+    v.hatralevo_targyak = [...v.targyak];
+  }
+
+  const n = vizsgalok.length;
+  if (n <= BRUTE_FORCE_LIMIT) {
+    return _brute_force_szimulacio(vizsgalok);
+  } else {
+    return _gordulo_szimulacio(vizsgalok);
+  }
+}
+
+// ============================================================
+// DAY SPLITTING
+// ============================================================
+
+function napokra_oszt(vizsgalok, napi_perc) {
+  const max_vizsga_per_nap = Math.floor((napi_perc + SZUNET_HOSSZ) / (VIZSGA_HOSSZ + SZUNET_HOSSZ));
+
+  const ossz_vizsga = vizsgalok.reduce((s, v) => s + v.targyak.length, 0);
+  const min_napok = Math.max(1, Math.ceil(ossz_vizsga / max_vizsga_per_nap));
+
+  // Sort: most subjects first, language-subject students preferred
+  const rendezett = [...vizsgalok].sort((a, b) => {
+    if (b.targyak.length !== a.targyak.length) return b.targyak.length - a.targyak.length;
+    const aHasLang = a.targyak.some(t => t.nyelvi) ? 0 : 1;
+    const bHasLang = b.targyak.some(t => t.nyelvi) ? 0 : 1;
+    return aHasLang - bHasLang;
+  });
+
+  const napok = Array.from({length: min_napok}, () => []);
+  const nap_vizsgak = new Array(min_napok).fill(0);
+
+  for (const v of rendezett) {
+    const targy_szam = v.targyak.length;
+    let legjobb_nap = null;
+    let legjobb_szam = 99999;
+
+    // 1. próba: szigorú korlát
+    for (let i = 0; i < napok.length; i++) {
+      if (nap_vizsgak[i] + targy_szam <= max_vizsga_per_nap) {
+        if (nap_vizsgak[i] < legjobb_szam) {
+          legjobb_szam = nap_vizsgak[i];
+          legjobb_nap = i;
+        }
+      }
+    }
+
+    // 2. próba: ha nem fér sehova, de új nap nyitása pazarló lenne,
+    // engedjük be a legkevesebb vizsgával rendelkező napra
+    // (ha a túlcsordlás enyhe: max a vizsgázó tárgyainak száma)
+    if (legjobb_nap === null && napok.length === min_napok) {
+      let legkevesebb_idx = 0;
+      for (let i = 1; i < napok.length; i++) {
+        if (nap_vizsgak[i] < nap_vizsgak[legkevesebb_idx]) legkevesebb_idx = i;
+      }
+      legjobb_nap = legkevesebb_idx;
+    }
+
+    if (legjobb_nap !== null) {
+      napok[legjobb_nap].push(v);
+      nap_vizsgak[legjobb_nap] += targy_szam;
+    } else {
+      napok.push([v]);
+      nap_vizsgak.push(targy_szam);
+    }
+  }
+
+  return [napok.filter(n => n.length > 0), max_vizsga_per_nap];
+}
+
+// ============================================================
+// UTILITY
+// ============================================================
+
+function percToIdo(perc, kezdes_ora = 8) {
+  const ora = kezdes_ora + Math.floor(perc / 60);
+  const p = perc % 60;
+  return `${ora}:${String(p).padStart(2, '0')}`;
+}
+
+function parseTimeToMinutes(timeStr) {
+  const [h, m] = timeStr.split(':').map(Number);
+  return h * 60 + m;
+}
+
+// ============================================================
+// TEST DATA
+// ============================================================
+
+const TEST_STUDENTS = [
+  { nev: "Kovács Anna",    targyak: ["Matematika", "Fizika", "*Angol nyelv", "Történelem", "Informatika"] },
+  { nev: "Nagy Péter",     targyak: ["Magyar irodalom", "*Német nyelv", "Biológia", "Kémia"] },
+  { nev: "Szabó Eszter",   targyak: ["Történelem", "Földrajz", "*Angol nyelv", "Magyar irodalom", "Matematika", "Informatika"] },
+  { nev: "Tóth Gábor",     targyak: ["Fizika", "Matematika", "Informatika", "Kémia", "*Angol nyelv"] },
+  { nev: "Horváth Lilla",  targyak: ["Biológia", "Kémia", "*Német nyelv", "Matematika"] },
+  { nev: "Kiss Bence",     targyak: ["Történelem", "Magyar irodalom", "*Angol nyelv", "*Francia nyelv", "Földrajz"] },
+  { nev: "Molnár Dóra",    targyak: ["Matematika", "Biológia", "*Német nyelv", "Fizika", "Történelem", "Kémia"] },
+];
+
+// ============================================================
+// GLOBAL STATE
+// ============================================================
+
+let globalResults = null; // { napAdatok, kezdesOra, vegOra }
+
+// ============================================================
+// TABLE MANAGEMENT
+// ============================================================
+
+let rowCount = 0;
+
+let currentColCount = 6; // Aktuális tárgy-oszlopok száma
+
+function getColCount() {
+  return currentColCount;
+}
+
+function setColCount(n) {
+  if (n <= currentColCount) return;
+  const headerRow = document.getElementById('tableHeader');
+  for (let i = currentColCount + 1; i <= n; i++) {
+    const th = document.createElement('th');
+    th.style.minWidth = '130px';
+    th.textContent = `${i}. Tárgy`;
+    headerRow.appendChild(th);
+  }
+  // Meglévő sorok bővítése
+  const rows = document.querySelectorAll('#studentBody tr');
+  for (const tr of rows) {
+    const existingInputs = tr.querySelectorAll('input');
+    const existingCols = existingInputs.length - 1; // név nem számít
+    for (let i = existingCols + 1; i <= n; i++) {
+      const td = document.createElement('td');
+      td.innerHTML = `<input type="text" placeholder="${i}. tárgy" value="" data-col="${i}" oninput="onSubjectInput(this)">`;
+      tr.appendChild(td);
+    }
+  }
+  currentColCount = n;
+}
+
+function addRow(data = null) {
+  rowCount++;
+  const tbody = document.getElementById('studentBody');
+  const tr = document.createElement('tr');
+  tr.dataset.row = rowCount;
+
+  // Ha az adat több tárgyat tartalmaz mint a jelenlegi oszlopszám, bővítünk
+  const targyakSzama = data ? data.length - 1 : 0;
+  if (targyakSzama > currentColCount) setColCount(targyakSzama);
+
+  const cols = getColCount();
+  const nameVal = data ? data[0] : '';
+  let cells = `<td>${rowCount}</td>`;
+  cells += `<td><input type="text" placeholder="Tanuló neve" value="${escHtml(nameVal)}" data-col="0"></td>`;
+  for (let i = 1; i <= cols; i++) {
+    const val = (data && data[i]) ? data[i] : '';
+    const cls = val.startsWith('*') ? ' class="lang-input"' : '';
+    cells += `<td><input type="text" placeholder="${i}. tárgy" value="${escHtml(val)}"${cls} data-col="${i}" oninput="onSubjectInput(this)"></td>`;
+  }
+
+  tr.innerHTML = cells;
+  tbody.appendChild(tr);
+  updateRowNumbers();
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function onSubjectInput(input) {
+  const val = input.value;
+  if (val.startsWith('*')) {
+    input.classList.add('lang-input');
+  } else {
+    input.classList.remove('lang-input');
+  }
+}
+
+function deleteLastRow() {
+  const tbody = document.getElementById('studentBody');
+  if (tbody.lastChild) {
+    tbody.removeChild(tbody.lastChild);
+    rowCount--;
+    updateRowNumbers();
+  }
+}
+
+function updateRowNumbers() {
+  const rows = document.querySelectorAll('#studentBody tr');
+  rows.forEach((tr, i) => {
+    tr.firstChild.textContent = i + 1;
+  });
+}
+
+function loadTestData() {
+  const tbody = document.getElementById('studentBody');
+  tbody.innerHTML = '';
+  rowCount = 0;
+  currentColCount = 6;
+  const headerRow = document.getElementById('tableHeader');
+  while (headerRow.children.length > 8) headerRow.removeChild(headerRow.lastChild);
+  for (const s of TEST_STUDENTS) {
+    addRow([s.nev, ...s.targyak]);
+  }
+}
+
+function getStudentsFromTable() {
+  const rows = document.querySelectorAll('#studentBody tr');
+  const students = [];
+  for (const tr of rows) {
+    const inputs = tr.querySelectorAll('input');
+    const nev = inputs[0].value.trim();
+    if (!nev) continue;
+    const targyak = [];
+    for (let i = 1; i < inputs.length; i++) {
+      const val = inputs[i].value.trim();
+      if (!val) continue;
+      const isLang = val.startsWith('*');
+      const name = isLang ? val.substring(1).trim() : val;
+      targyak.push(new Targy(name, isLang));
+    }
+    if (targyak.length > 0) {
+      students.push(new Vizsgazo(nev, targyak));
+    }
+  }
+  return students;
+}
+
+// ============================================================
+// EXCEL IMPORT
+// ============================================================
+
+document.getElementById('fileInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      const data = new Uint8Array(ev.target.result);
+      const wb = XLSX.read(data, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+      const tbody = document.getElementById('studentBody');
+      tbody.innerHTML = '';
+      rowCount = 0;
+      currentColCount = 6; // Reset oszlopszám
+      // Fejléc visszaállítása 6-ra
+      const headerRow = document.getElementById('tableHeader');
+      while (headerRow.children.length > 8) headerRow.removeChild(headerRow.lastChild);
+
+      let startRow = 0;
+      // Fejléc felismerés: első cella tartalmaz-e fejléc jellegű szöt
+      if (rows.length > 0) {
+        const firstCell = String(rows[0][0] || '').toLowerCase().trim();
+        if (['név', 'nev', 'name', 'tanuló', 'vizsgázó', 'vizsgázó neve', 'diák'].some(h => firstCell.includes(h))) {
+          startRow = 1;
+        }
+      }
+
+      let betoltott = 0;
+      for (let i = startRow; i < rows.length; i++) {
+        const row = rows[i];
+        const nev = String(row[0] || '').trim();
+        if (!nev) continue;
+
+        // Útmutató/megjegyzés sorok kiszűrése:
+        // Ha a 2. oszloptól nincs érdemi tárgy adat, kihagyjuk
+        const targyak = row.slice(1).filter(c => String(c || '').trim() !== '');
+        if (targyak.length === 0) continue;
+
+        const rowData = row.map(c => String(c || '').trim());
+        // Üres elemek levágása a végéről
+        while (rowData.length > 1 && rowData[rowData.length - 1] === '') rowData.pop();
+        addRow(rowData);
+        betoltott++;
+      }
+
+      showAlert(`Excel fájl betöltve: ${betoltott} vizsgázó.`, 'success');
+    } catch (err) {
+      showAlert('Excel betöltési hiba: ' + err.message, 'error');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+  e.target.value = '';
+});
+
+// ============================================================
+// CALCULATION
+// ============================================================
+
+function showSpinner(msg, sub) {
+  document.getElementById('spinnerMsg').textContent = msg || 'Beosztás számítása folyamatban…';
+  document.getElementById('spinnerSub').textContent = sub || '';
+  document.getElementById('spinnerOverlay').classList.add('active');
+}
+
+function hideSpinner() {
+  document.getElementById('spinnerOverlay').classList.remove('active');
+}
+
+function showAlert(msg, type = 'info') {
+  const old = document.getElementById('calcAlert');
+  if (old) old.remove();
+  const div = document.createElement('div');
+  div.id = 'calcAlert';
+  div.className = `alert alert-${type}`;
+  div.textContent = msg;
+  const body = document.querySelector('.card .card-body');
+  if (body) body.prepend(div);
+  setTimeout(() => { if (div.parentNode) div.remove(); }, 5000);
+}
+
+function startCalculation() {
+  const students = getStudentsFromTable();
+  if (students.length === 0) {
+    showAlert('Nincs elegendő adat! Adja meg a vizsgázók nevét és tárgyait.', 'error');
+    return;
+  }
+
+  const startTimeStr = document.getElementById('startTime').value || '08:00';
+  const endTimeStr = document.getElementById('endTime').value || '16:00';
+  const examVal = parseInt(document.getElementById('examLength').value, 10);
+  VIZSGA_HOSSZ = (isNaN(examVal) || examVal < 1) ? 15 : examVal;
+  const breakVal = parseInt(document.getElementById('breakTime').value, 10);
+  SZUNET_HOSSZ = (isNaN(breakVal) || breakVal < 0) ? 2 : breakVal;
+  const prepVal = parseInt(document.getElementById('prepTime').value, 10);
+  FELKESZULESI_IDO = (isNaN(prepVal) || prepVal < 0) ? 20 : prepVal;
+  const kezdesPerc = parseTimeToMinutes(startTimeStr);
+  const vegPerc = parseTimeToMinutes(endTimeStr);
+  const napi_perc = vegPerc - kezdesPerc;
+  const kezdes_ora = Math.floor(kezdesPerc / 60);
+
+  if (napi_perc <= 0) {
+    showAlert('A befejezési időnek a kezdési idő után kell lennie!', 'error');
+    return;
+  }
+
+  const max_vizsga_per_nap = Math.floor((napi_perc + SZUNET_HOSSZ) / (VIZSGA_HOSSZ + SZUNET_HOSSZ));
+  if (max_vizsga_per_nap < 1) {
+    showAlert('A megadott napi időkeret túl kicsi egyetlen vizsga lebonyolításához is!', 'error');
+    return;
+  }
+
+  const n = students.length;
+  const sub = n <= BRUTE_FORCE_LIMIT
+    ? `Teljes brute-force: ${n} vizsgázó, ${factorial(n).toLocaleString()} permutáció`
+    : `Gördülő brute-force: ${n} vizsgázó`;
+
+  showSpinner('Beosztás számítása folyamatban…', sub);
+  document.getElementById('calcBtn').disabled = true;
+
+  // Use setTimeout to allow UI to update before heavy computation
+  setTimeout(() => {
+    try {
+      const result = doCalculation(students, napi_perc, kezdes_ora);
+      globalResults = { napAdatok: result, kezdes_ora, napi_perc };
+      renderResults(globalResults);
+      document.getElementById('resultsSection').style.display = '';
+      document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } catch (err) {
+      showAlert('Számítási hiba: ' + err.message, 'error');
+      console.error(err);
+    } finally {
+      hideSpinner();
+      document.getElementById('calcBtn').disabled = false;
+    }
+  }, 50);
+}
+
+function factorial(n) {
+  let r = 1;
+  for (let i = 2; i <= n; i++) r *= i;
+  return r;
+}
+
+function runNapok(napok, napi_perc) {
+  const nap_adatok = [];
+  for (const nap_vizsgalok of napok) {
+    const nap_students = nap_vizsgalok.map(v => {
+      return new Vizsgazo(v.nev, v.targyak.map(t => new Targy(t.nev, t.nyelvi)));
+    });
+    const [esemenyek, rendezett] = szimulacio(nap_students);
+
+    // Belépési idők optimalizálása post-simulation
+    for (const v of rendezett) {
+      const v_esem = esemenyek.filter(e => e.vizsgazo_nev === v.nev);
+      if (v_esem.length === 0) continue;
+      const elso_esem = v_esem.reduce((minE, e) => e.kezdes < minE.kezdes ? e : minE, v_esem[0]);
+      const prep = elso_esem.targy_nyelvi ? 0 : FELKESZULESI_IDO;
+      v.belepesi_ido = elso_esem.kezdes - prep;
+      elso_esem.felkeszules_kezdet = v.belepesi_ido;
+    }
+
+    const ertek = _ertekeles(esemenyek, rendezett);
+    nap_adatok.push({ esemenyek, vizsgalok: rendezett, ertek });
+  }
+  return nap_adatok;
+}
+
+function doCalculation(students, napi_perc, kezdes_ora) {
+  const [napok, _max_vp] = napokra_oszt(students, napi_perc);
+  let nap_adatok = runNapok(napok, napi_perc);
+
+  // Próbáljunk eggyel kevesebb napot: ha minden nap belfér az időkeretbe, használjuk
+  if (napok.length > 1) {
+    const kev_napok = napokra_oszt_fix(students, napok.length - 1);
+    if (kev_napok) {
+      const kev_adatok = runNapok(kev_napok, napi_perc);
+      const mind_belfer = kev_adatok.every(d => d.ertek[0] <= napi_perc);
+      if (mind_belfer) {
+        nap_adatok = kev_adatok;
+      }
+    }
+  }
+
+  return nap_adatok;
+}
+
+// Vizsgázókat fix számú napra oszt (túlcsordlással)
+function napokra_oszt_fix(vizsgalok, nap_szam) {
+  const rendezett = [...vizsgalok].sort((a, b) => {
+    if (b.targyak.length !== a.targyak.length) return b.targyak.length - a.targyak.length;
+    const aL = a.targyak.some(t => t.nyelvi) ? 0 : 1;
+    const bL = b.targyak.some(t => t.nyelvi) ? 0 : 1;
+    return aL - bL;
+  });
+  const napok = Array.from({length: nap_szam}, () => []);
+  const nap_vizsgak = new Array(nap_szam).fill(0);
+  for (const v of rendezett) {
+    let best = 0;
+    for (let i = 1; i < nap_szam; i++) {
+      if (nap_vizsgak[i] < nap_vizsgak[best]) best = i;
+    }
+    napok[best].push(v);
+    nap_vizsgak[best] += v.targyak.length;
+  }
+  return napok;
+}
+
+// ============================================================
+// RENDERING
+// ============================================================
+
+function switchTab(n) {
+  document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === n));
+  document.querySelectorAll('.tab-panel').forEach((p, i) => p.classList.toggle('active', i === n));
+}
+
+function renderResults(data) {
+  const { napAdatok, kezdes_ora, napi_perc } = data;
+  renderStats(napAdatok, kezdes_ora, napi_perc);
+  renderCommittee(napAdatok, kezdes_ora);
+  renderStudents(napAdatok, kezdes_ora);
+}
+
+// ---- TAB 0: STATISTICS ----
+
+function renderStats(napAdatok, kezdes_ora, napi_perc) {
+  const ossz_vizsgalok = napAdatok.reduce((s, d) => s + d.vizsgalok.length, 0);
+  const ossz_targyak = napAdatok.reduce((s, d) => s + d.vizsgalok.reduce((ss, v) => ss + v.targyak.length, 0), 0);
+  const ossz_ido = napAdatok.reduce((s, d) => s + d.ertek[0], 0);
+  const ossz_uresjarat = napAdatok.reduce((s, d) => s + d.ertek[2], 0);
+  const ossz_max_var = Math.max(...napAdatok.map(d => d.ertek[1]));
+  const kihasznalt = ossz_targyak * VIZSGA_HOSSZ;
+  const kihaszn_pct = ossz_ido > 0 ? (kihasznalt / ossz_ido * 100).toFixed(1) : 0;
+
+  let html = `<div class="stat-grid">`;
+  html += statCard(napAdatok.length, 'Napok száma', '', '');
+  html += statCard(ossz_vizsgalok, 'Vizsgázók', '', '');
+  html += statCard(ossz_targyak, 'Összes vizsga', '', '');
+  html += statCard(ossz_ido + ' perc', 'Teljes idő', `${Math.floor(ossz_ido/60)}h ${ossz_ido%60}p`, '');
+  html += statCard(ossz_uresjarat + ' perc', 'Üresjárat', ossz_uresjarat === 0 ? 'Tökéletes!' : '', ossz_uresjarat <= 5 ? 'good' : ossz_uresjarat <= 15 ? '' : 'warn');
+  html += statCard(ossz_max_var + ' perc', 'Max várakozás', ossz_max_var <= 16 ? '≤16 perc ✓' : '', ossz_max_var <= 16 ? 'good' : 'warn');
+  html += statCard(kihaszn_pct + '%', 'Kihasználtság', '', kihaszn_pct >= 90 ? 'good' : '');
+  html += `</div>`;
+
+  // Per-day breakdown table
+  html += `<div class="result-table-wrap"><table class="result-table">
+    <thead><tr>
+      <th>Nap</th>
+      <th>Vizsgázók</th>
+      <th>Vizsgák</th>
+      <th>Időtartam</th>
+      <th>Üresjárat</th>
+      <th>Max vár.</th>
+      <th>Kezdés</th>
+      <th>Befejezés</th>
+      <th>Sorrend</th>
+    </tr></thead>
+    <tbody>`;
+
+  for (let i = 0; i < napAdatok.length; i++) {
+    const d = napAdatok[i];
+    const { esemenyek, vizsgalok, ertek } = d;
+    const elso_k = esemenyek.length > 0 ? Math.min(...esemenyek.map(e => e.kezdes)) : 0;
+    const utolso_v = esemenyek.length > 0 ? Math.max(...esemenyek.map(e => e.befejezes)) : 0;
+    const sorrend = vizsgalok.map(v => `<span style="white-space:nowrap">${escHtml(v.nev)}</span>`).join(' → ');
+    html += `<tr>
+      <td><strong>${i+1}. nap</strong></td>
+      <td>${vizsgalok.length}</td>
+      <td>${esemenyek.length}</td>
+      <td>${ertek[0]} perc</td>
+      <td style="color:${ertek[2] === 0 ? 'var(--success)' : ertek[2] <= 10 ? 'var(--teal)' : 'var(--warning)'}">${ertek[2]} perc</td>
+      <td style="color:${ertek[1] <= 16 ? 'var(--success)' : 'var(--warning)'}">${ertek[1]} perc</td>
+      <td>${percToIdo(elso_k, kezdes_ora)}</td>
+      <td>${percToIdo(utolso_v, kezdes_ora)}</td>
+      <td style="font-size:12px">${sorrend}</td>
+    </tr>`;
+  }
+
+  html += `</tbody></table></div>`;
+  document.getElementById('statsContent').innerHTML = html;
+}
+
+function statCard(value, label, sub, cls) {
+  return `<div class="stat-card ${cls}">
+    <div class="stat-label">${label}</div>
+    <div class="stat-value">${value}</div>
+    ${sub ? `<div class="stat-sub">${sub}</div>` : ''}
+  </div>`;
+}
+
+// ---- TAB 1: COMMITTEE TIMELINE ----
+
+function renderCommittee(napAdatok, kezdes_ora) {
+  let html = '';
+
+  for (let napIdx = 0; napIdx < napAdatok.length; napIdx++) {
+    const { esemenyek, vizsgalok, ertek } = napAdatok[napIdx];
+
+    html += `<div class="day-header">
+      <span class="num-badge">${napIdx+1}. nap</span>
+      <h3>${vizsgalok.length} vizsgázó · ${esemenyek.length} vizsga</h3>
+      <span>${ertek[0]} perc · ${ertek[2]} perc üresjárat · max ${ertek[1]} perc várakozás</span>
+    </div>`;
+
+    html += `<div class="result-table-wrap"><table class="result-table">
+      <thead><tr>
+        <th>#</th>
+        <th>Kezdés</th>
+        <th>Befejezés</th>
+        <th>Vizsgázó</th>
+        <th>Tárgy</th>
+        <th>Típus</th>
+        <th>Megjegyzés</th>
+      </tr></thead>
+      <tbody>`;
+
+    for (let i = 0; i < esemenyek.length; i++) {
+      const e = esemenyek[i];
+      const isLang = e.targy_nyelvi;
+      const rowCls = isLang ? ' class="lang-row"' : '';
+
+      let megj = '';
+      if (i < esemenyek.length - 1) {
+        const szunet = esemenyek[i+1].kezdes - e.befejezes;
+        if (szunet > SZUNET_HOSSZ) {
+          megj = `<span class="idle-warn">⚠ ${szunet-SZUNET_HOSSZ} perc üresjárat</span>`;
+        }
+      }
+
+      html += `<tr${rowCls}>
+        <td>${i+1}</td>
+        <td><strong>${percToIdo(e.kezdes, kezdes_ora)}</strong></td>
+        <td>${percToIdo(e.befejezes, kezdes_ora)}</td>
+        <td>${escHtml(e.vizsgazo_nev)}</td>
+        <td>${escHtml(e.targy_nev)}</td>
+        <td><span class="tag ${isLang ? 'tag-lang' : 'tag-normal'}">${isLang ? '* Nyelvi' : 'Tárgy'}</span></td>
+        <td>${megj}</td>
+      </tr>`;
+
+      // Show idle gap as a row if significant
+      if (i < esemenyek.length - 1) {
+        const szunet = esemenyek[i+1].kezdes - e.befejezes;
+        if (szunet > SZUNET_HOSSZ) {
+          html += `<tr class="idle-row">
+            <td colspan="7">⌛ ${percToIdo(e.befejezes, kezdes_ora)} – ${percToIdo(esemenyek[i+1].kezdes, kezdes_ora)} · Bizottság vár (${szunet} perc szünet, ebből ${szunet-SZUNET_HOSSZ} perc felesleges)</td>
+          </tr>`;
+        }
+      }
+    }
+
+    html += `</tbody></table></div>`;
+  }
+
+  document.getElementById('committeeContent').innerHTML = html;
+}
+
+// ---- TAB 2: STUDENTS ----
+
+function renderStudents(napAdatok, kezdes_ora) {
+  let html = '';
+
+  for (let napIdx = 0; napIdx < napAdatok.length; napIdx++) {
+    const { esemenyek, vizsgalok } = napAdatok[napIdx];
+
+    html += `<div class="day-header">
+      <span class="num-badge">${napIdx+1}. nap</span>
+      <h3>${vizsgalok.length} vizsgázó</h3>
+    </div>`;
+
+    for (const v of vizsgalok) {
+      const v_esem = esemenyek.filter(e => e.vizsgazo_nev === v.nev);
+
+      const var_lista = v_esem
+        .filter(e => !e.targy_nyelvi)
+        .map(e => Math.max(0, e.kezdes - (e.felkeszules_kezdet + FELKESZULESI_IDO)))
+        .filter(x => x > 0);
+
+      const max_var = var_lista.length > 0 ? Math.max(...var_lista) : 0;
+      const bent_ido = (v.kilepesi_ido !== null && v.belepesi_ido !== null) ? v.kilepesi_ido - v.belepesi_ido : 0;
+
+      html += `<div class="student-block">
+        <div class="student-block-header">
+          <strong>${escHtml(v.nev)}</strong>
+          <div class="student-meta">
+            <span>Belépés: <strong>${percToIdo(v.belepesi_ido || 0, kezdes_ora)}</strong></span>
+            <span>Kilépés: <strong>${percToIdo(v.kilepesi_ido || 0, kezdes_ora)}</strong></span>
+            <span>Bent: <strong>${bent_ido} perc</strong></span>
+            <span>Tárgyak: <strong>${v.targyak.length}</strong></span>
+            ${max_var > 0 ? `<span style="color:var(--warning)">Max várakozás: <strong>${max_var} perc</strong></span>` : ''}
+          </div>
+        </div>
+        <div class="result-table-wrap" style="border:none; border-radius:0; margin:0;">
+        <table class="result-table" style="border-radius:0;">
+          <thead><tr>
+            <th>Tárgy</th>
+            <th>Típus</th>
+            <th>Felkészülés kezdete</th>
+            <th>Felkészülés vége</th>
+            <th>Vizsga kezdete</th>
+            <th>Vizsga vége</th>
+            <th>Felkészülési időn túlnyúlás</th>
+          </tr></thead>
+          <tbody>`;
+
+      for (const e of v_esem) {
+        const isLang = e.targy_nyelvi;
+        const rowCls = isLang ? ' class="lang-row"' : '';
+        let felk_kezd_str, felk_veg_str, varakozas_str;
+
+        if (isLang) {
+          felk_kezd_str = '—';
+          felk_veg_str = '—';
+          varakozas_str = '<span style="color:var(--text-light)">—</span>';
+        } else {
+          felk_kezd_str = percToIdo(e.felkeszules_kezdet, kezdes_ora);
+          felk_veg_str = percToIdo(e.felkeszules_kezdet + FELKESZULESI_IDO, kezdes_ora);
+          const varak = Math.max(0, e.kezdes - (e.felkeszules_kezdet + FELKESZULESI_IDO));
+          if (varak > 0) {
+            const barCls = varak >= 16 ? 'high' : varak >= 8 ? 'med' : 'low';
+            const barW = Math.min(60, varak * 3);
+            varakozas_str = `<span class="wait-bar ${barCls}" style="width:${barW}px"></span>${varak} perc`;
+          } else {
+            varakozas_str = '<span style="color:var(--success)">0 perc</span>';
+          }
+        }
+
+        html += `<tr${rowCls}>
+          <td><strong>${escHtml(e.targy_nev)}</strong></td>
+          <td><span class="tag ${isLang ? 'tag-lang' : 'tag-normal'}">${isLang ? '* Nyelvi' : 'Tárgy'}</span></td>
+          <td>${felk_kezd_str}</td>
+          <td>${felk_veg_str}</td>
+          <td><strong>${percToIdo(e.kezdes, kezdes_ora)}</strong></td>
+          <td>${percToIdo(e.befejezes, kezdes_ora)}</td>
+          <td>${varakozas_str}</td>
+        </tr>`;
+      }
+
+      html += `</tbody></table></div></div>`;
+    }
+  }
+
+  document.getElementById('studentContent').innerHTML = html;
+}
+
+// ============================================================
+// EXCEL EXPORT
+// ============================================================
+
+function exportExcel() {
+  if (!globalResults) {
+    showAlert('Nincs eredmény exportáláshoz. Először készítsen beosztást!', 'error');
+    return;
+  }
+
+  const { napAdatok, kezdes_ora, napi_perc } = globalResults;
+  const wb = XLSX.utils.book_new();
+
+  // Stílus segédfüggvények
+  const fejlecStyle = { font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 10 }, fill: { fgColor: { rgb: '01696F' } }, alignment: { horizontal: 'center', vertical: 'center' } };
+  const cimStyle = { font: { bold: true, sz: 14 } };
+  const alcimStyle = { font: { bold: true, sz: 11 } };
+  const napStyle = { font: { bold: true, sz: 11, color: { rgb: '01696F' } }, fill: { fgColor: { rgb: 'E8F5F6' } } };
+  const normalStyle = { font: { sz: 10 } };
+  const joStyle = { font: { bold: true, sz: 12, color: { rgb: '437A22' } } };
+  const ertekStyle = { font: { bold: true, sz: 12 } };
+  const nyelviStyle = { fill: { fgColor: { rgb: 'FFF3E0' } } };
+  const borderStyle = { bottom: { style: 'thin', color: { rgb: 'D4D1CA' } } };
+  const mutedStyle = { font: { sz: 9, color: { rgb: '7A7974' } } };
+  const warnStyle = { font: { sz: 9, color: { rgb: '964219' } } };
+
+  function setCell(ws, r, c, val, style) {
+    const addr = XLSX.utils.encode_cell({ r, c });
+    if (!ws[addr]) ws[addr] = {};
+    ws[addr].v = val;
+    ws[addr].t = typeof val === 'number' ? 'n' : 's';
+    if (style) ws[addr].s = style;
+  }
+
+  function setRange(ws, maxR, maxC) {
+    ws['!ref'] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: maxR, c: maxC } });
+  }
+
+  // Összesítő adatok
+  const ossz_vizsgalok = napAdatok.reduce((s,d) => s + d.vizsgalok.length, 0);
+  const ossz_targyak = napAdatok.reduce((s,d) => s + d.esemenyek.length, 0);
+  const ossz_ido = napAdatok.reduce((s,d) => s + d.ertek[0], 0);
+  const ossz_uresjarat = napAdatok.reduce((s,d) => s + d.ertek[2], 0);
+  const ossz_max_var = Math.max(...napAdatok.map(d => d.ertek[1]));
+  const vegOra = Math.floor((parseTimeToMinutes(document.getElementById('endTime').value || '16:00')) / 60);
+  const kihasznaltsag = (ossz_targyak * VIZSGA_HOSSZ / ossz_ido * 100).toFixed(1) + '%';
+
+  // ================================================================
+  // 1. MUNKALAP: Statisztika
+  // ================================================================
+  const ws_stat = {};
+  let r = 1; // 0-indexed
+  setCell(ws_stat, r, 1, 'Vizsga Beosztás — Statisztika', cimStyle);
+  ws_stat['!merges'] = [{ s: { r: 1, c: 1 }, e: { r: 1, c: 4 } }];
+  r++;
+  setCell(ws_stat, r, 1, `Generálva: ${new Date().toLocaleString('hu-HU')}`, mutedStyle);
+  r += 2;
+
+  setCell(ws_stat, r, 1, 'Összesítés', alcimStyle); r++;
+  const statPairs = [
+    ['Napok száma', napAdatok.length],
+    ['Vizsgázók száma', ossz_vizsgalok],
+    ['Összes vizsga', ossz_targyak],
+    ['Napi időkeret', `${kezdes_ora}:00 – ${vegOra}:00 (${napi_perc} perc)`],
+    [null, null],
+    ['Összes vizsgaidő', `${ossz_ido} perc (${Math.floor(ossz_ido/60)}h ${ossz_ido%60}p)`],
+    ['Összes üresjárat', `${ossz_uresjarat} perc`],
+    ['Max várakozás', `${ossz_max_var} perc`],
+    ['Kihasználtság', kihasznaltsag],
+  ];
+  for (const [nev, ertek] of statPairs) {
+    if (nev === null) { r++; continue; }
+    setCell(ws_stat, r, 1, nev, normalStyle);
+    let st = normalStyle;
+    if (nev === 'Összes üresjárat' && ossz_uresjarat <= 5) st = joStyle;
+    else if (nev === 'Max várakozás' && ossz_max_var <= 20) st = joStyle;
+    else if (['Kihasználtság', 'Összes üresjárat', 'Max várakozás'].includes(nev)) st = ertekStyle;
+    setCell(ws_stat, r, 3, ertek, st);
+    r++;
+  }
+  r += 2;
+
+  // Napi bontás táblázat
+  setCell(ws_stat, r, 1, 'Napi bontás', alcimStyle); r++;
+  const napiFejlec = ['Nap', 'Vizsgázók', 'Vizsgák', 'Időtartam', 'Üresjárat', 'Max vár.', 'Kezdés', 'Befejezés'];
+  for (let c = 0; c < napiFejlec.length; c++) setCell(ws_stat, r, c + 1, napiFejlec[c], fejlecStyle);
+  r++;
+  for (let i = 0; i < napAdatok.length; i++) {
+    const d = napAdatok[i];
+    const elso_k = d.esemenyek.length > 0 ? Math.min(...d.esemenyek.map(e => e.kezdes)) : 0;
+    const utolso_v = d.esemenyek.length > 0 ? Math.max(...d.esemenyek.map(e => e.befejezes)) : 0;
+    setCell(ws_stat, r, 1, `${i+1}. nap`, normalStyle);
+    setCell(ws_stat, r, 2, d.vizsgalok.length, { ...normalStyle, alignment: { horizontal: 'center' } });
+    setCell(ws_stat, r, 3, d.esemenyek.length, { ...normalStyle, alignment: { horizontal: 'center' } });
+    setCell(ws_stat, r, 4, `${d.ertek[0]} perc`, normalStyle);
+    setCell(ws_stat, r, 5, `${d.ertek[2]} perc`, d.ertek[2] <= 5 ? joStyle : normalStyle);
+    setCell(ws_stat, r, 6, `${d.ertek[1]} perc`, d.ertek[1] <= 20 ? joStyle : normalStyle);
+    setCell(ws_stat, r, 7, percToIdo(elso_k, kezdes_ora), { ...normalStyle, alignment: { horizontal: 'center' } });
+    setCell(ws_stat, r, 8, percToIdo(utolso_v, kezdes_ora), { ...normalStyle, alignment: { horizontal: 'center' } });
+    r++;
+  }
+  r += 2;
+
+  // Vizsgázók naponként
+  setCell(ws_stat, r, 1, 'Vizsgázók napokra beosztva', alcimStyle); r++;
+  for (let i = 0; i < napAdatok.length; i++) {
+    setCell(ws_stat, r, 1, `${i+1}. nap:`, napStyle);
+    setCell(ws_stat, r, 2, napAdatok[i].vizsgalok.map(v => v.nev).join(', '), normalStyle);
+    r++;
+  }
+
+  ws_stat['!cols'] = [{ wch: 3 }, { wch: 22 }, { wch: 14 }, { wch: 14 }, { wch: 16 }, { wch: 14 }, { wch: 14 }, { wch: 12 }, { wch: 12 }];
+  setRange(ws_stat, r, 8);
+  XLSX.utils.book_append_sheet(wb, ws_stat, 'Statisztika');
+
+  // ================================================================
+  // 2. MUNKALAP: Bizottság beosztása
+  // ================================================================
+  const ws_biz = {};
+  r = 1;
+  setCell(ws_biz, r, 1, 'Bizottság beosztása', cimStyle);
+  ws_biz['!merges'] = [{ s: { r: 1, c: 1 }, e: { r: 1, c: 7 } }];
+  r += 2;
+
+  for (let napIdx = 0; napIdx < napAdatok.length; napIdx++) {
+    const d = napAdatok[napIdx];
+    // Nap fejléc
+    for (let c = 1; c <= 8; c++) setCell(ws_biz, r, c, c === 1 ? `${napIdx+1}. nap` : '', napStyle);
+    r++;
+
+    const bizFejlec = ['Ssz.', 'Kezdés', 'Befejezés', 'Vizsgázó', 'Tárgy', 'Típus', 'Megjegyzés'];
+    for (let c = 0; c < bizFejlec.length; c++) setCell(ws_biz, r, c + 1, bizFejlec[c], fejlecStyle);
+    r++;
+
+    for (let j = 0; j < d.esemenyek.length; j++) {
+      const e = d.esemenyek[j];
+      const cellStyle = e.targy_nyelvi ? { ...normalStyle, ...nyelviStyle } : normalStyle;
+      setCell(ws_biz, r, 1, j + 1, { ...cellStyle, alignment: { horizontal: 'center' } });
+      setCell(ws_biz, r, 2, percToIdo(e.kezdes, kezdes_ora), { ...cellStyle, alignment: { horizontal: 'center' } });
+      setCell(ws_biz, r, 3, percToIdo(e.befejezes, kezdes_ora), { ...cellStyle, alignment: { horizontal: 'center' } });
+      setCell(ws_biz, r, 4, e.vizsgazo_nev, cellStyle);
+      setCell(ws_biz, r, 5, e.targy_nev, cellStyle);
+      setCell(ws_biz, r, 6, e.targy_nyelvi ? 'Nyelvi' : 'Nem nyelvi', { ...cellStyle, alignment: { horizontal: 'center' } });
+      let megj = '';
+      if (j > 0) {
+        const elozo = d.esemenyek[j - 1];
+        const szunet = e.kezdes - elozo.befejezes;
+        if (szunet > SZUNET_HOSSZ) megj = `${szunet - SZUNET_HOSSZ}p üresjárat`;
+      }
+      setCell(ws_biz, r, 7, megj, megj ? warnStyle : normalStyle);
+      r++;
+    }
+    r += 2;
+  }
+
+  ws_biz['!cols'] = [{ wch: 3 }, { wch: 7 }, { wch: 10 }, { wch: 12 }, { wch: 20 }, { wch: 20 }, { wch: 12 }, { wch: 18 }];
+  setRange(ws_biz, r, 8);
+  XLSX.utils.book_append_sheet(wb, ws_biz, 'Bizottság beosztása');
+
+  // ================================================================
+  // 3. MUNKALAP: Diákok beosztása
+  // ================================================================
+  const ws_diak = {};
+  r = 1;
+  setCell(ws_diak, r, 1, 'Diákok beosztása', cimStyle);
+  ws_diak['!merges'] = [{ s: { r: 1, c: 1 }, e: { r: 1, c: 8 } }];
+  r += 2;
+
+  const diakMerges = ws_diak['!merges'] || [];
+
+  for (let napIdx = 0; napIdx < napAdatok.length; napIdx++) {
+    const d = napAdatok[napIdx];
+    // Nap fejléc
+    for (let c = 1; c <= 9; c++) setCell(ws_diak, r, c, c === 1 ? `${napIdx+1}. nap` : '', napStyle);
+    r++;
+
+    for (const v of d.vizsgalok) {
+      const v_esem = d.esemenyek.filter(e => e.vizsgazo_nev === v.nev);
+      if (v_esem.length === 0) continue;
+
+      const bent_ido = (v.kilepesi_ido != null && v.belepesi_ido != null) ? v.kilepesi_ido - v.belepesi_ido : 0;
+
+      // Vizsgázó fejléc
+      setCell(ws_diak, r, 1, v.nev, alcimStyle);
+      setCell(ws_diak, r, 4, `Belépés: ${percToIdo(v.belepesi_ido || 0, kezdes_ora)}`, mutedStyle);
+      setCell(ws_diak, r, 6, `Kilépés: ${percToIdo(v.kilepesi_ido || 0, kezdes_ora)}`, mutedStyle);
+      setCell(ws_diak, r, 8, `Bent: ${bent_ido}p`, mutedStyle);
+      r++;
+
+      // Tárgy fejléc
+      const diakFejlec = ['Tárgy', 'Felk. kezdet', 'Felk. vége', 'Vizsga kezdet', 'Vizsga vége', 'Típus', 'Várakozás'];
+      for (let c = 0; c < diakFejlec.length; c++) setCell(ws_diak, r, c + 1, diakFejlec[c], fejlecStyle);
+      r++;
+
+      for (const e of v_esem) {
+        const cellStyle = e.targy_nyelvi ? { ...normalStyle, ...nyelviStyle } : normalStyle;
+        setCell(ws_diak, r, 1, e.targy_nev, cellStyle);
+        if (e.targy_nyelvi) {
+          setCell(ws_diak, r, 2, '–', { ...cellStyle, alignment: { horizontal: 'center' } });
+          setCell(ws_diak, r, 3, '–', { ...cellStyle, alignment: { horizontal: 'center' } });
+        } else {
+          setCell(ws_diak, r, 2, percToIdo(e.felkeszules_kezdet, kezdes_ora), { ...cellStyle, alignment: { horizontal: 'center' } });
+          setCell(ws_diak, r, 3, percToIdo(e.felkeszules_kezdet + FELKESZULESI_IDO, kezdes_ora), { ...cellStyle, alignment: { horizontal: 'center' } });
+        }
+        setCell(ws_diak, r, 4, percToIdo(e.kezdes, kezdes_ora), { ...cellStyle, alignment: { horizontal: 'center' } });
+        setCell(ws_diak, r, 5, percToIdo(e.befejezes, kezdes_ora), { ...cellStyle, alignment: { horizontal: 'center' } });
+        setCell(ws_diak, r, 6, e.targy_nyelvi ? 'Nyelvi' : 'Nem nyelvi', { ...cellStyle, alignment: { horizontal: 'center' } });
+        const var_ = e.targy_nyelvi ? '–' : (Math.max(0, e.kezdes - (e.felkeszules_kezdet + FELKESZULESI_IDO)) + 'p');
+        setCell(ws_diak, r, 7, var_, { ...cellStyle, alignment: { horizontal: 'center' } });
+        r++;
+      }
+      r++; // Vizsgázók között
+    }
+    r++; // Napok között
+  }
+
+  ws_diak['!cols'] = [{ wch: 3 }, { wch: 20 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 12 }, { wch: 12 }];
+  ws_diak['!merges'] = diakMerges;
+  setRange(ws_diak, r, 8);
+  XLSX.utils.book_append_sheet(wb, ws_diak, 'Diákok beosztása');
+
+  XLSX.writeFile(wb, 'vizsga_beosztas.xlsx');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+
+// Start with a few empty rows
+for (let i = 0; i < 5; i++) addRow();
+
+</script>
+</body>
+</html>
